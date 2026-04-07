@@ -1,0 +1,29 @@
+name: "CodeQL"
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+    - uses: actions/checkout@v4
+    - uses: github/codeql-action/init@v3
+      with:
+        languages: java
+        queries: security-extended
+    - uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    - name: Build
+      run: |
+        chmod +x gradlew 2>/dev/null || true
+        chmod +x mvnw 2>/dev/null || true
+        if [ -f "gradlew" ]; then ./gradlew build -x test; elif [ -f "mvnw" ]; then ./mvnw package -DskipTests; elif [ -f "pom.xml" ]; then mvn package -DskipTests; fi
+    - uses: github/codeql-action/analyze@v3
